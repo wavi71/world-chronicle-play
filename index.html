@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14282f" />
+    <meta name="description" content="약 14,000개 지역의 세계 지도에서 국가를 선택하는 턴제 전략 게임." />
+    <title>World Chronicle — 세계의 연대기</title>
+    <script type="module" crossorigin src="./assets/index-elKvbIo2.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DE6L5_GG.css">
+  </head>
+  <body>
+    <div id="app" class="shell in-menu" data-panel="">
+      <div class="command-bar">
+      <header class="masthead">
+        <span id="brand-mark" class="brand-mark" aria-hidden="true"></span>
+        <p class="wordmark" lang="en">World Chronicle</p>
+        <button type="button" id="open-setup" aria-controls="main-menu" aria-expanded="false">캠페인 시작</button>
+      </header>
+      <section id="hud" aria-label="플레이 국가 자원과 턴" hidden>
+        <button id="open-management" type="button" class="hud-identity" aria-label="국가 운영 창" aria-haspopup="dialog" title="국가 운영 창"><span id="hud-swatch" class="swatch"></span><strong id="hud-country"></strong></button>
+        <dl class="hud-resources">
+          <div title="국고"><dt>국고</dt><dd><button type="button" data-account="ledger" aria-label="국고와 재정 명세"><span data-icon="coin"></span><span id="hud-gold"></span></button></dd></div>
+          <div title="턴당 순수입 예상"><dt>순수입 예상</dt><dd class="income"><span data-icon="stats"></span><span id="hud-income"></span></dd></div>
+          <div title="행동 점수"><dt>행동 점수</dt><dd class="ap"><span data-icon="action"></span><span id="hud-ap"></span></dd></div>
+          <div title="외교 점수"><dt>외교 점수</dt><dd><span data-icon="treaty"></span><span id="hud-dp"></span></dd></div>
+          <div title="기술"><dt>기술</dt><dd><button type="button" data-account="research" aria-label="기술 투자 열기"><span data-icon="research"></span><span id="hud-tech"></span></button></dd></div>
+        </dl>
+        <div class="turn-controls">
+          <time id="scenario-date"></time><span id="turn-number"></span>
+        </div>
+      </section>
+      <nav id="panel-nav" aria-label="게임 패널">
+        <button type="button" data-panel="military" aria-label="군사·외교" aria-controls="campaign-panel" aria-pressed="false">외교</button>
+        <button type="button" data-panel="country" aria-label="국가 운영" aria-controls="campaign-panel" aria-pressed="false">내정</button>
+        <button type="button" data-panel="province" aria-label="지역" aria-controls="province-panel" aria-pressed="false">지역</button>
+      </nav>
+      <details id="map-options" hidden>
+        <summary>맵 모드</summary>
+        <section class="mode-window" aria-label="맵 모드 설정">
+          <div class="window-title"><h2>맵 모드</h2><button type="button" class="window-close" data-close="modes" aria-label="맵 모드 닫기">×</button></div>
+          <label class="sr-only" for="map-mode">지도 모드</label><select id="map-mode" size="5"></select>
+          <div class="map-toggles"><label><input type="checkbox" id="show-capitals" checked /> 수도명</label><label><input type="checkbox" id="show-armies" checked /> 지상 병력</label></div>
+          <div class="map-key"><p id="map-mode-title">정치 지도</p><ul id="legend" aria-label="지도 범례"></ul>
+            <ul id="terrain-legend" aria-label="지형 범례" hidden></ul><p id="mode-reading" aria-live="polite" hidden></p><p id="map-count"></p>
+          </div>
+        </section>
+      </details>
+      </div>
+      <div id="game-nav" hidden>
+        <button type="button" id="notices-button" title="턴 알림"><span data-icon="log"></span><span class="sr-only">턴 알림</span><span id="notice-count"></span></button>
+        <button type="button" id="menu-button" aria-label="캠페인 메뉴" title="캠페인 메뉴"><span data-icon="settings"></span></button>
+      </div>
+      <p id="turn-feedback" role="status" hidden></p>
+      <main class="layout">
+        <div class="atlas-column">
+          <section aria-labelledby="map-title">
+            <div class="map-heading"><h1 id="map-title" tabindex="-1">이베리아반도</h1><span id="atlas-date" class="atlas-date"></span></div>
+            <div id="map-controls" role="group" aria-label="지도 탐색" hidden>
+              <button type="button" id="map-zoom-out" aria-label="지도 축소">−</button>
+              <button type="button" id="map-zoom-in" aria-label="지도 확대">+</button>
+              <button type="button" id="map-reset" aria-label="전체 보기" title="전체 보기"><span data-icon="world"></span></button>
+              <button type="button" id="map-home" aria-label="수도로" title="수도로" hidden><span data-icon="crown"></span></button>
+            </div>
+            <figure class="atlas">
+              <div class="map-frame">
+                <div id="map" aria-label="이베리아반도 지도"></div>
+                <div id="compass" aria-hidden="true"></div>
+                <p id="map-status" class="map-message" role="status" hidden>지도를 불러오는 중입니다.</p>
+                <p id="map-error" class="map-message" role="alert" hidden></p>
+              </div>
+              <section id="map-dock" aria-label="지도 명령">
+                <div class="country-overview"><button type="button" data-minimap aria-label="미니맵 · 위치 선택, 키보드로 전체 보기"><canvas width="170" height="84"></canvas></button>
+                  <button type="button" class="dock-head" data-open-province aria-controls="province-panel" title="지역 정보"><span data-crest></span><span><strong data-name></strong><span data-meta></span></span></button>
+                </div>
+                <div class="order-strip"><div data-actions></div><div data-form></div><p role="status"></p></div>
+                <button type="button" id="end-turn" disabled>턴 종료</button>
+              </section>
+            </figure>
+          </section>
+
+          <section id="province-panel" class="inspector province-inspector" aria-labelledby="inspector-title">
+            <div class="window-title"><h2 id="inspector-title">지역 정보</h2><button type="button" class="window-close" data-close="panel" aria-label="지역 정보 닫기">×</button></div>
+            <label for="province-select">지역 선택</label>
+            <select id="province-select" disabled>
+              <option>지역 불러오는 중</option>
+            </select>
+
+            <div id="province-card" aria-live="polite" hidden>
+              <p class="province-country"><span id="owner-color" class="swatch" aria-hidden="true"></span><span id="province-owner"></span><span id="province-controller"></span></p>
+              <h3 id="province-name"></h3>
+              <dl class="province-stats">
+                <div><dt>지형</dt><dd id="province-terrain"></dd></div>
+                <div><dt>인구</dt><dd id="province-population"></dd></div>
+                <div id="province-economy" hidden>
+                  <dt>개발도 / 농장 레벨</dt><dd><span id="province-development"></span> / <span id="province-farm"></span></dd>
+                </div>
+                <div><dt>불안도</dt><dd id="province-unrest"></dd></div>
+                <div><dt>건물</dt><dd id="province-buildings"></dd></div>
+                <div><dt>국적 구성</dt><dd id="province-nationalities"></dd></div>
+                <div><dt>종교 구성</dt><dd id="province-religions"></dd></div>
+                <div id="province-forces" hidden><dt>주둔 병력</dt><dd id="province-garrison"></dd></div>
+                <div><dt>면적</dt><dd id="province-area"></dd></div>
+                <div><dt id="neighbors-label">육로 인접 지역</dt><dd id="province-neighbors"></dd></div>
+              </dl>
+              <ul id="province-neighbor-list" role="list" aria-labelledby="neighbors-label" hidden></ul>
+            </div>
+          </section>
+        </div>
+
+        <section id="main-menu" class="inspector menu" aria-labelledby="menu-title" hidden>
+          <div class="window-title"><h2 id="menu-title">캠페인 시작</h2><button type="button" class="window-close" data-close="setup" aria-label="캠페인 메뉴 닫기">×</button></div>
+          <button id="resume-active" class="menu-primary" hidden>게임으로 돌아가기</button>
+          <button type="button" id="load-world" class="menu-primary">세계 캠페인 · 14,000개 지역</button>
+          <fieldset id="new-settings" disabled hidden>
+            <div class="scenario-label"><label for="new-scenario">시나리오</label><time id="start-date"></time></div><select id="new-scenario"></select>
+            <p id="scenario-description" class="scenario-description" hidden></p>
+            <fieldset id="new-countries"><legend>플레이 국가</legend><div id="country-options"></div></fieldset>
+            <button type="button" id="start-game" class="menu-primary">게임 시작 <span data-icon="arrow" aria-hidden="true"></span></button>
+          </fieldset>
+          <div class="menu-actions scenario-actions">
+            <button type="button" id="choose-practice" disabled>이베리아 연습 · 8개 지역</button>
+            <button type="button" id="edit-scenario" disabled>시나리오 편집</button>
+            <button type="button" id="import-scenario">시나리오 열기</button>
+            <input type="file" id="scenario-file" accept=".json,application/json" hidden />
+          </div>
+          <div class="slot-box">
+            <h3><span data-icon="save" aria-hidden="true"></span>수동 저장 슬롯</h3>
+            <p id="slot-info">저장 목록을 읽는 중입니다.</p>
+            <div class="menu-actions">
+              <button id="load-slot" disabled>이어하기</button>
+              <button id="save-slot" hidden>수동 저장</button>
+              <button id="retry-slot" hidden>목록 다시 읽기</button>
+            </div>
+          </div>
+          <div class="menu-actions file-actions">
+            <button id="import-game"><span data-icon="upload" aria-hidden="true"></span>파일 열기</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden />
+            <button id="export-game" hidden><span data-icon="download" aria-hidden="true"></span>파일 내보내기</button>
+          </div>
+          <p id="menu-message" role="status" hidden></p>
+          <button id="cancel-opening" hidden>불러오기 취소</button>
+          <details class="setup-sources"><summary>지도 정보</summary><p id="preview-count" hidden></p><ul id="preview-legend" aria-label="지도 범례" hidden></ul>
+            <footer class="source" id="map-sources"><a href="https://www.naturalearthdata.com/about/terms-of-use/">지도 자료 · Natural Earth</a></footer>
+          </details>
+        </section>
+
+        <section id="scenario-editor" class="inspector menu" aria-labelledby="editor-title" hidden>
+          <div class="menu-heading editor-heading">
+            <h2 id="editor-title" tabindex="-1">시나리오 편집</h2>
+            <button type="button" id="close-scenario-editor">메뉴로</button>
+          </div>
+          <div id="editor-panel"></div>
+          <p id="editor-message" role="status" hidden></p>
+        </section>
+
+        <section id="campaign-panel" class="inspector campaign" aria-labelledby="campaign-title" hidden>
+            <div class="window-title"><h2 id="campaign-title">국가 운영</h2><button type="button" class="window-close" data-close="panel" aria-label="국가 패널 닫기">×</button></div>
+            <label class="report-setting"><input type="checkbox" id="auto-battle-report" /> 전투 보고 자동 열기</label>
+            <p class="national-summary"><span id="country-summary"></span> · <span id="dock-receipts"></span></p>
+            <p id="campaign-message" role="status" hidden></p>
+            <div id="campaign-data" hidden>
+              <label for="country-select">조회 국가</label>
+              <select id="country-select"></select>
+              <dl class="country-stats">
+                <div><dt>국고</dt><dd id="country-treasury"></dd></div>
+                <div><dt>병력</dt><dd id="country-army"></dd></div>
+                <div><dt>민간인</dt><dd id="country-population"></dd></div>
+                <div><dt>세율</dt><dd id="country-tax"></dd></div>
+                <div><dt id="receipts-label">예상 수입</dt><dd id="country-receipts"></dd></div>
+                <div><dt id="expenses-label">예상 운영비</dt><dd id="country-expenses"></dd></div>
+              </dl>
+              <p id="country-shortfall" hidden></p>
+              <fieldset id="campaign-orders" disabled>
+                <legend>명령 예약</legend>
+                <p id="country-ap"></p>
+                <form id="tax-policy"></form>
+                <div id="province-commands">
+                  <p id="order-province"></p>
+                  <form data-order="recruit">
+                    <button id="recruit-button">징병 예약</button>
+                  </form>
+                  <form class="farm-order" data-order="build">
+                    <input type="hidden" name="building" value="farm" />
+                    <button id="farm-button">농장 건설 예약</button>
+                    <span id="farm-cost"></span>
+                  </form>
+                  <form data-order="relocate" id="relocate-form" hidden>
+                    <label for="relocate-target">이주 목적지</label>
+                    <select id="relocate-target" name="targetProvinceId"></select>
+                    <button id="relocate-button">이주 예약</button>
+                  </form>
+                </div>
+                <section id="military-commands" aria-labelledby="military-title">
+                  <h3 id="military-title">군사·외교</h3>
+                  <label for="war-target">외교 상대</label>
+                  <select id="war-target"></select>
+                  <p id="war-status" class="military-note" aria-live="polite"></p>
+                  <p id="relation-value" class="military-note" hidden></p>
+                  <p id="diplomatic-offer" class="military-note" aria-live="polite" hidden></p>
+                  <div class="war-buttons">
+                    <button type="button" id="accept-offer" hidden><span data-icon="check"></span>제안 수락 예약</button>
+                    <button type="button" id="reject-offer" hidden><span data-icon="close"></span>제안 거절 예약</button>
+                  </div>
+                  <div id="diplomatic-actions" class="diplomatic-actions" role="group" aria-label="외교 행동">
+                    <button type="button" id="declare-war" data-tone="hostile"><span data-icon="swords"></span><span>선전포고 예약</span></button>
+                    <button type="button" id="improve-relations" data-tone="relations" hidden><span data-icon="speech"></span><span>관계 개선 예약</span></button>
+                    <button type="button" id="alliance-button" data-tone="relations" hidden><span data-icon="handshake"></span><span>동맹 제안 예약</span></button>
+                    <button type="button" id="white-peace" data-tone="relations" hidden><span data-icon="peace"></span><span>백지 강화 예약</span></button>
+                    <button type="button" id="claim-province" data-tone="territory" hidden><span data-icon="land"></span><span>선택 지역 양도 요청</span></button>
+                  </div>
+                  <p id="foreign-hint" class="military-note"></p>
+                  <fieldset id="combat-settings" hidden>
+                    <legend>지휘 설정</legend>
+                    <label><input type="checkbox" id="auto-combat" aria-describedby="auto-combat-hint" /> 자동전투</label>
+                    <p id="auto-combat-hint" class="military-note">전쟁 중 턴마다 대기 중인 부대를 최대 하나 지휘합니다.</p>
+                    <div class="ai-difficulty">
+                      <label for="ai-difficulty">AI 난이도</label><output id="ai-difficulty-value" for="ai-difficulty">보통</output>
+                      <input type="range" id="ai-difficulty" min="0" max="2" step="1" value="1" aria-valuetext="보통" />
+                    </div>
+                  </fieldset>
+                  <label for="move-army">이동 부대</label>
+                  <div class="order-fields">
+                    <select id="move-army"></select>
+                    <button type="button" id="move-button">이동 예약</button>
+                  </div>
+                  <p id="move-preview" class="military-note" aria-live="polite"></p>
+                  <ul id="unavailable-armies" class="military-note" aria-label="대기·수송 중인 부대" hidden></ul>
+                  <div id="nuclear-orders" hidden>
+                    <button type="button" id="nuclear-action" aria-describedby="nuclear-status"></button>
+                    <p id="nuclear-status" class="military-note"></p>
+                  </div>
+                </section>
+                <ul id="queued-orders" aria-label="예약된 명령" hidden></ul>
+              </fieldset>
+            </div>
+        </section>
+      </main>
+      <section id="rank-panel" class="inspector" aria-labelledby="rank-title">
+        <div class="window-title"><h2 id="rank-title">지역 순위</h2><button type="button" class="window-close" data-close="panel" aria-label="지역 순위 닫기">×</button></div>
+        <p id="rank-summary"></p>
+        <ol id="rank-list"></ol>
+      </section>
+      <dialog id="management" aria-labelledby="campaign-title">
+        <form method="dialog"><button value="close" autofocus>지도로 돌아가기</button></form>
+      </dialog>
+      <dialog id="decision" aria-labelledby="decision-title">
+        <h2 id="decision-title"></h2><p id="decision-detail"></p>
+        <form method="dialog"><button value="cancel" autofocus id="decision-cancel">현재 게임 유지</button><button value="ok" id="decision-ok"></button></form>
+      </dialog>
+      <dialog id="notices" aria-labelledby="notices-title">
+        <div class="dialog-heading"><h2 id="notices-title">턴 알림</h2><form method="dialog"><button autofocus>닫기</button></form></div>
+        <ol id="notice-list"></ol><button id="older-notices" hidden>이전 알림 더 보기</button>
+      </dialog>
+    </div>
+  </body>
+</html>
